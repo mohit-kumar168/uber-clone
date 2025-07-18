@@ -1,26 +1,26 @@
 import { User } from "../models/user.models.js";
+import { BlacklistToken } from "../models/blacklistToken.models.js";
 import { createUser } from "../services/user.services.js";
 import { validationResult } from "express-validator";
 import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 
-
 const registerUser = async (req, res) => {
     try {
         // console.log("Request body: ", req.body);
-        
+
         const errors = validationResult(req);
-        if(!errors.isEmpty()) {
+        if (!errors.isEmpty()) {
             console.log("Validation errors: ", errors.array());
             throw new apiError(400, "Validation failed", errors.array());
         }
-        
+
         const { fullName, email, password } = req.body;
-        const user = await createUser({ 
-            firstName: fullName.firstName, 
-            lastName: fullName.lastName, 
-            email, 
-            password 
+        const user = await createUser({
+            firstName: fullName.firstName,
+            lastName: fullName.lastName,
+            email,
+            password,
         });
 
         const token = await user.generateToken();
@@ -30,51 +30,75 @@ const registerUser = async (req, res) => {
         return res
             .status(201)
             .json(
-                new apiResponse(201, {token, user}, "User registered successfully")
-            )
+                new apiResponse(
+                    201,
+                    { token, user },
+                    "User registered successfully"
+                )
+            );
     } catch (error) {
         throw new apiError(501, "Failed to register user");
     }
-}
+};
 
 const loginUser = async (req, res) => {
-    try{
+    try {
         const errors = validationResult(req);
-        if(!errors.isEmpty()) {
+        if (!errors.isEmpty()) {
             throw new apiError(400, "Validation failed", errors.array());
         }
-        
+
         const { email, password } = req.body;
         const user = await User.findOne({ email }).select("+password");
-        if(!user){
+        if (!user) {
             throw new apiError(401, "Invalid email or password");
         }
 
         const isPasswordValid = await user.isPasswordCorrect(password);
 
-        if(!isPasswordValid){
+        if (!isPasswordValid) {
             throw new apiError(401, "Invalid email or password");
         }
 
         const token = await user.generateToken();
 
+        res.cookie("token", token);
+
+        res
+            .status(200)
+            .json(
+                new apiResponse(
+                    200,
+                    { token, user },
+                    "User Logged In successfully"
+                )
+            );
+    } catch (error) {
+        throw new apiError(501, "Login Failed");
+    }
+};
+
+const getUserProfile = async (req, res) => {
+    try {
         return res
             .status(200)
             .json(
-                new apiResponse(200, {token, user}, "User Logged In successfully")
+                new apiResponse(200, req.user, "User profile fetched successfully")
             )
-
-    } catch(error) {
-        throw new apiError(501, "Login Failed")
+    } catch (error) {
+        throw new apiError(501, "Failed to fetch user profile");
     }
+};
+
+const logoutUser = async (req, res) => {
+    res.clearCookie("token");
+    const token = req.cookies.token || req.headers.authorization.split(" ")[1];
+
+    await BlacklistToken.create({ token });
+
+    res
+        .status(200)
+        .json(new apiResponse(200, {}, "User logged out successfully"));
 }
 
-const getUserProfile = async (req, res) => {
-
-}
-
-export {
-    registerUser,
-    loginUser,
-    getUserProfile
-}
+export { registerUser, loginUser, getUserProfile, logoutUser };
