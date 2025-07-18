@@ -16,6 +16,12 @@ const registerUser = async (req, res) => {
         }
 
         const { fullName, email, password } = req.body;
+
+        const isUserAlreadyExist = await User.findOne({ email });
+        if (isUserAlreadyExist) {
+            throw new apiError(409, "User with this email already exists");
+        }
+
         const user = await createUser({
             firstName: fullName.firstName,
             lastName: fullName.lastName,
