@@ -331,3 +331,135 @@ None required.
   "success": false
 }
 ```
+
+---
+
+# Captain Registration Endpoint
+
+## Endpoint
+
+`POST /captains/register`
+
+## Description
+
+Registers a new captain (driver) by accepting their personal information, email, password, and vehicle details. Returns an authentication token and the created captain profile.
+
+## Request
+
+**Headers**
+
+- `Content-Type: application/json`
+
+**Body Parameters**
+
+| Field                  | Type   | Required | Description                              |
+| ---------------------- | ------ | -------- | ---------------------------------------- |
+| `fullName.firstName`   | string | Yes      | First name (min 3 characters)            |
+| `fullName.lastName`    | string | No       | Last name (min 3 characters)             |
+| `email`                | string | Yes      | Valid email address                      |
+| `password`             | string | Yes      | Password (min 6 characters)              |
+| `vehicle.color`        | string | Yes      | Vehicle color (min 3 characters)         |
+| `vehicle.plate`        | string | Yes      | Vehicle plate number (min 3 characters)  |
+| `vehicle.capacity`     | number | Yes      | Vehicle capacity (min 1)                 |
+| `vehicle.vehicleType`  | string | Yes      | Vehicle type: "car", "motorcycle", "auto"|
+
+### Sample Request
+
+```json
+{
+  "fullName": {
+    "firstName": "Jane",
+    "lastName": "Smith"
+  },
+  "email": "jane.smith@example.com",
+  "password": "Captain123",
+  "vehicle": {
+    "color": "White",
+    "plate": "ABC1234",
+    "capacity": 4,
+    "vehicleType": "car"
+  }
+}
+```
+
+## Responses
+
+### Success (201 Created)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 201,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "captain": {
+      "_id": "60c72b2f5f1b2c001c8e4b9c",
+      "fullName": {
+        "firstName": "Jane",
+        "lastName": "Smith"
+      },
+      "email": "jane.smith@example.com",
+      "status": "inactive",
+      "vehicle": {
+        "color": "White",
+        "plate": "ABC1234",
+        "capacity": 4,
+        "vehicleType": "car"
+      },
+      "location": {
+        "lat": null,
+        "lng": null
+      },
+      "socketId": null,
+      "createdAt": "2021-06-14T07:07:11.123Z",
+      "updatedAt": "2021-06-14T07:07:11.123Z"
+    }
+  },
+  "message": "Captain registered successfully",
+  "success": true
+}
+```
+
+### Validation Error (400 Bad Request)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed",
+  "errors": [
+    {
+      "msg": "Please enter a valid email address",
+      "param": "email",
+      "location": "body"
+    }
+  ],
+  "success": false
+}
+```
+
+### Conflict Error (409 Conflict)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 409,
+  "message": "Captain with this email already exists",
+  "success": false
+}
+```
+
+### Server Error (500 Internal Server Error)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 500,
+  "message": "Failed to register captain",
+  "success": false
+}
+```
