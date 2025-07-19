@@ -463,3 +463,274 @@ Registers a new captain (driver) by accepting their personal information, email,
   "success": false
 }
 ```
+
+---
+
+# Captain Login Endpoint
+
+## Endpoint
+
+`POST /captains/login`
+
+## Description
+
+Authenticates an existing captain with their email and password. Returns an authentication token and the captain profile upon successful login.
+
+## Request
+
+**Headers**
+
+- `Content-Type: application/json`
+
+**Body Parameters**
+
+| Field      | Type   | Required | Description                  |
+| ---------- | ------ | -------- | ---------------------------- |
+| `email`    | string | Yes      | Valid email address          |
+| `password` | string | Yes      | Password (min 6 characters)  |
+
+### Sample Request
+
+```json
+{
+  "email": "jane.smith@example.com",
+  "password": "Captain123"
+}
+```
+
+## Responses
+
+### Success (200 OK)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "captain": {
+      "_id": "60c72b2f5f1b2c001c8e4b9c",
+      "fullName": {
+        "firstName": "Jane",
+        "lastName": "Smith"
+      },
+      "email": "jane.smith@example.com",
+      "status": "inactive",
+      "vehicle": {
+        "color": "White",
+        "plate": "ABC1234",
+        "capacity": 4,
+        "vehicleType": "car"
+      },
+      "location": {
+        "lat": null,
+        "lng": null
+      },
+      "socketId": null,
+      "createdAt": "2021-06-14T07:07:11.123Z",
+      "updatedAt": "2021-06-14T07:07:11.123Z"
+    }
+  },
+  "message": "Captain logged in successfully",
+  "success": true
+}
+```
+
+### Validation Error (400 Bad Request)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed",
+  "errors": [
+    {
+      "msg": "Please enter a valid email address",
+      "param": "email",
+      "location": "body"
+    }
+  ],
+  "success": false
+}
+```
+
+### Authentication Error (401 Unauthorized)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 401,
+  "message": "Invalid email or password",
+  "success": false
+}
+```
+
+### Server Error (500 Internal Server Error)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 500,
+  "message": "Login Failed",
+  "success": false
+}
+```
+
+---
+
+# Captain Profile Endpoint
+
+## Endpoint
+
+`GET /captains/profile`
+
+## Description
+
+Retrieves the profile information of the currently authenticated captain. Requires a valid authentication token.
+
+## Request
+
+**Headers**
+
+- `Authorization: Bearer <token>` (or token can be sent via cookies)
+
+**Body Parameters**
+
+None required.
+
+## Responses
+
+### Success (200 OK)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 200,
+  "data": {
+    "_id": "60c72b2f5f1b2c001c8e4b9c",
+    "fullName": {
+      "firstName": "Jane",
+      "lastName": "Smith"
+    },
+    "email": "jane.smith@example.com",
+    "status": "inactive",
+    "vehicle": {
+      "color": "White",
+      "plate": "ABC1234",
+      "capacity": 4,
+      "vehicleType": "car"
+    },
+    "location": {
+      "lat": null,
+      "lng": null
+    },
+    "socketId": null,
+    "createdAt": "2021-06-14T07:07:11.123Z",
+    "updatedAt": "2021-06-14T07:07:11.123Z"
+  },
+  "message": "Captain profile fetched successfully",
+  "success": true
+}
+```
+
+### Authentication Error (401 Unauthorized)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 401,
+  "message": "Unauthorized",
+  "success": false
+}
+```
+
+### Not Found Error (404 Not Found)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 404,
+  "message": "Captain not found",
+  "success": false
+}
+```
+
+### Server Error (500 Internal Server Error)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 500,
+  "message": "Failed to fetch captain profile",
+  "success": false
+}
+```
+
+---
+
+# Captain Logout Endpoint
+
+## Endpoint
+
+`GET /captains/logout`
+
+## Description
+
+Logs out the currently authenticated captain by clearing the authentication cookie and blacklisting the token to prevent further use.
+
+## Request
+
+**Headers**
+
+- `Authorization: Bearer <token>` (or token can be sent via cookies)
+
+**Body Parameters**
+
+None required.
+
+## Responses
+
+### Success (200 OK)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 200,
+  "data": {},
+  "message": "Captain logged out successfully",
+  "success": true
+}
+```
+
+### Authentication Error (401 Unauthorized)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 401,
+  "message": "Unauthorized",
+  "success": false
+}
+```
+
+### Server Error (500 Internal Server Error)
+
+**Response Body**
+
+```json
+{
+  "statusCode": 500,
+  "message": "Logout failed",
+  "success": false
+}
+```
