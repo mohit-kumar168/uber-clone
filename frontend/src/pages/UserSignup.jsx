@@ -1,6 +1,8 @@
 import React from 'react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import UserContext, { UserDataContext } from '../context/UserContext'
 
 const UserSignup = () => {
     const [email, setEmail] = useState("");
@@ -8,7 +10,9 @@ const UserSignup = () => {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
 
-    const [userData, setUserData] = useState({});
+    const { user, setUser } = React.useContext(UserDataContext)
+
+    const navigate = useNavigate();
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -23,16 +27,27 @@ const UserSignup = () => {
         }
     }
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        setUserData({
+        const newUser = {
             email,
             password,
             fullName: {
               firstName,
               lastName
             }
-        })
+        }
+
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/register`, newUser);
+
+        if(response.status === 201) {
+            const data = response.data;
+
+            setUser(data.data.user)
+            localStorage.setItem("token", data.data.token);
+            navigate("/home");
+        }
+
         setEmail("");
         setPassword("");
         setFirstName("");
@@ -94,7 +109,7 @@ const UserSignup = () => {
                     className='bg-[#EDEDED] rounded-xl text-lg placeholder:text-base py-3 px-5 mb-5 w-full'
                 />
 
-                <button className='bg-black text-white text-lg font-semibold rounded-xl w-full py-3 px-5 mb-5'>Sign Up</button>
+                <button className='bg-black text-white text-lg font-semibold rounded-xl w-full py-3 px-5 mb-5'>Create Account</button>
             </form>
             <p className='text-center'>Already have a account? <Link to="/login" className='text-blue-600'>Login here</Link></p>
         </div>

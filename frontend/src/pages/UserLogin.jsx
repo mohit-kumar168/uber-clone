@@ -1,12 +1,16 @@
 import React from 'react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { UserDataContext } from '../context/UserContext'
 
 const UserLogin = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const [userData, setUserData] = useState({});
+    const { user, setUser } = React.useContext(UserDataContext)
+
+    const navigate = useNavigate();
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -17,12 +21,22 @@ const UserLogin = () => {
         }
     }
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        setUserData({
+        const userData = {
             email,
             password
-        })
+        }
+
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/login`, userData);
+        if(response.status === 200){
+            const data = response.data;
+            setUser(data.data.user);
+            console.log(data)
+            localStorage.setItem("token", data.data.token);
+            console.log("Token set in localStorage: ", localStorage.getItem("token"));
+            navigate("/home");
+        }
         setEmail("");
         setPassword("");
     }

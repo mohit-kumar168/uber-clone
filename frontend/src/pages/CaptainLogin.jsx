@@ -1,12 +1,15 @@
 import React from 'react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { CaptainDataContext } from '../context/CaptainContex'
+import axios from 'axios'
 
 const CaptainLogin = () => {
     const [email, setemail] = useState("");
     const [password, setpassword] = useState("");
 
-    const [captainData, setCaptainData] = useState({});
+    const { captainData, setCaptainData } = React.useContext(CaptainDataContext);
+    const navigate = useNavigate();
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -17,12 +20,20 @@ const CaptainLogin = () => {
         }
     }
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        setCaptainData({
+        const captain = {
             email,
             password
-        })
+        }
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/captains/login`, captain);
+        if(response.status === 200){
+            const data = response.data;
+            setCaptainData(data.data.captain);
+            localStorage.setItem("token", data.data.token);
+            navigate("/captain-home");
+        }
+
         setemail("");
         setpassword("");
     }
